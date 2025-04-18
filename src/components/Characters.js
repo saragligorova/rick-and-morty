@@ -3,6 +3,7 @@ import { GET_CHARACTERS } from "../graphqlQuery";
 import { useTranslation, usteTranslation } from "react-i18next";
 import { gql, useQuery } from '@apollo/client';
 import i18n from '../i18n';
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 
 function Characters() {
@@ -12,16 +13,35 @@ function Characters() {
     const [status, setStatus] = useState('');
     const [species, setSpecies] = useState('');
     const [sortBy, setSortBy] = useState('');
+    const [characters, setCharacters] = useState([]);
+
 
     const { loading, error, data, fetchMore, refetch } = useQuery(GET_CHARACTERS, {
         variables: { page, status: status || null, species: species || null },
+        onCompleted: (data) => {
+            if (page === 1) {
+                setCharacters(data.characters.results);
+            }
+        }
     });
 
     const loadMore = () => {
         const nextPage = page + 1;
-        setPage(nextPage);
-        fetchMore({ variables: { page: nextPage, status, species } });
+        fetchMore({
+            variables: { page: nextPage, status, species },
+            updateQuery: (prevResult, { fetchMoreResult }) => {
+                if (!fetchMoreResult) return prevResult;
+
+                setCharacters(prev => [
+                    ...prev,
+                    ...fetchMoreResult.characters.results
+                ]);
+
+                setPage(nextPage);
+            }
+        });
     };
+
 
     const handlePageChange = (newPage) => {
         setPage(newPage);
@@ -30,25 +50,25 @@ function Characters() {
         });
     };
 
-    const totalPages = data?.characters?.info?.pages || 1;
+    //const totalPages = data?.characters?.info?.pages || 1;
 
-    const hadleFilterChange = () => {
+    const handleFilterChange = () => {
         setPage(1);
-        fetchMore({ variables: { page: 1, status, species } });
+        setCharacters([]);
+        refetch({ page: 1, status, species });
     };
+
 
     const handleSortChange = (criteria) => {
         setSortBy(criteria)
     }
 
-    const sortedCharacters = [...(data?.characters?.results || [])].sort((a, b) => {
-        if (sortBy === 'name') {
-            return a.name.localeCompare(b.name);
-        } else if (sortBy === 'origin') {
-            return a.origin.name.localeCompare(b.origin.name);
-        }
+    const sortedCharacters = [...characters].sort((a, b) => {
+        if (sortBy === 'name') return a.name.localeCompare(b.name);
+        if (sortBy === 'origin') return a.origin.name.localeCompare(b.origin.name);
         return 0;
     });
+
 
 
     //if (loading) return <p>{t('Loading')}...</p>;
@@ -69,7 +89,7 @@ function Characters() {
                                 className="form-control"
                                 placeholder={t('Enter Species')}
                                 value={species}
-                                onChange={e => { setSpecies(e.target.value); hadleFilterChange(); }}
+                                onChange={e => { setSpecies(e.target.value); handleFilterChange(); }}
                             />
                         </div>
 
@@ -78,7 +98,7 @@ function Characters() {
                             <select
                                 className="form-select"
                                 value={status}
-                                onChange={e => { setStatus(e.target.value); hadleFilterChange(); }}
+                                onChange={e => { setStatus(e.target.value); handleFilterChange(); }}
                             >
                                 <option value="">{t('All')}</option>
                                 <option value="Alive">{t('Alive')}</option>
@@ -121,10 +141,20 @@ function Characters() {
                 </div>
 
                 <div className="col-md-9 text-center">
-                    {loading ? (
+                    {loading && page === 1 ? (
                         <p>{t('Loading')}...</p>
                     ) : (
-                        <>
+                        <InfiniteScroll
+                            dataLength={sortedCharacters.length}
+                            next={loadMore}
+                            hasMore={data?.characters?.info?.next != null}
+                            loader={<h4>{t('Loading')}...</h4>}
+                            endMessage={
+                                <p style={{ textAlign: 'center' }}>
+                                    <b>{t('You have seen it all')}</b>
+                                </p>
+                            }
+                        >
                             <div className="row">
                                 {sortedCharacters.map(character => (
                                     <div key={character.id} className="col-md-4 mb-4">
@@ -140,15 +170,11 @@ function Characters() {
                                     </div>
                                 ))}
                             </div>
-
-                            <div className="d-grid gap-2 d-md-flex justify-content-md-end">
-                                <button className="btn btn-success" onClick={loadMore}>
-                                    {t('View More')}
-                                </button>
-                            </div>
-                        </>
+                        </InfiniteScroll>
                     )}
                 </div>
+
+
 
 
             </div>

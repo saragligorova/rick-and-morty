@@ -13,6 +13,12 @@ export const GET_CHARACTERS = gql`
           name
         }
       }
+      info {
+        pages
+        count
+        next
+        prev
+      }
     }
   }
 `;
