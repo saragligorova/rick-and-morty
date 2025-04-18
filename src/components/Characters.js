@@ -51,8 +51,8 @@ function Characters() {
     });
 
 
-    if (loading) return <p>{t('loading')}...</p>;
-    if (error) return <p>{t('errorFetchingData')}</p>;
+    //if (loading) return <p>{t('Loading')}...</p>;
+    if (error) return <p>{t('Error loading characters')}</p>;
 
     return (
         <div className="container-fluid">
@@ -108,7 +108,7 @@ function Characters() {
                                     refetch();
                                 }}
                             >
-                                {t('Refresh')}
+                                {t('Clear')}
                             </button>
                         </div>
 
@@ -121,28 +121,35 @@ function Characters() {
                 </div>
 
                 <div className="col-md-9 text-center">
-                    <div className="row">
-                        {sortedCharacters.map(character => (
-                            <div key={character.id} className="col-md-4 mb-4">
-                                <div className="card h-100 shadow-sm">
-                                    <div className="card-body">
-                                        <h5 className="card-title">{character.name}</h5>
-                                        <p className="card-text">{t('status')}: {character.status}</p>
-                                        <p className="card-text">{t('species')}: {character.species}</p>
-                                        <p className="card-text">{t('gender')}: {character.gender}</p>
-                                        <p className="card-text">{t('origin')}: {character.origin.name}</p>
+                    {loading ? (
+                        <p>{t('Loading')}...</p>
+                    ) : (
+                        <>
+                            <div className="row">
+                                {sortedCharacters.map(character => (
+                                    <div key={character.id} className="col-md-4 mb-4">
+                                        <div className="card h-100 shadow-sm">
+                                            <div className="card-body">
+                                                <h5 className="card-title">{character.name}</h5>
+                                                <p className="card-text">{t('status')}: {character.status}</p>
+                                                <p className="card-text">{t('species')}: {character.species}</p>
+                                                <p className="card-text">{t('gender')}: {character.gender}</p>
+                                                <p className="card-text">{t('origin')}: {character.origin.name}</p>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
 
-                    <div className="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button className="btn btn-success" onClick={loadMore}>
-                            {t('View More')}
-                        </button>
-                    </div>
+                            <div className="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button className="btn btn-success" onClick={loadMore}>
+                                    {t('View More')}
+                                </button>
+                            </div>
+                        </>
+                    )}
                 </div>
+
 
             </div>
         </div>

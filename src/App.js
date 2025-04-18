@@ -13,10 +13,6 @@ function App() {
   return (
     <div style={{padding: '20px'}}>
       <Characters/>
-      <footer style={{marginTop: '20px'}}>
-        <button onClick={() => changeLanguage('en')}>English</button>
-        <button onClick={() => changeLanguage('de')}>Deutch</button>
-      </footer>
     </div>
   )
 }
